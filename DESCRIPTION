@@ -1,0 +1,22 @@
+Package: TyphoonPlot
+Title: Creating Genomic Typhoon Plots
+Version: 0.0.0.9000
+Date: 2015-05-03
+Authors@R: person(given = "Jason", middle = "A", family = "Belsky",
+                  email = "jabelsky@gmail.com",
+                  role = c("aut", "cre")
+                 )
+Description: Provides both processing and graphics helper functions to create a
+    Typhoon Plot, which is a two-dimensional visualization method of paired-end
+    next-generation sequencing reads.  The x-axis represents the genomic
+    position, and the y-axis the fragment length.  Typhoon Plots are created
+    first by creating a data matrix, and are then subsequently displayed
+    using the DensDotPlot function, a wrapper for the base image() function
+Depends: R (>= 3.1.3)
+License: What license is it under?
+LazyData: true
+Imports:
+  GenomicRanges (>= 1.18.4),
+  gplots (>= 2.16.0),
+  Rsamtools (>= 1.18.3)
+URL: http://www.duke.edu/~jab112

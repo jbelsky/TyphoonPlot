@@ -1,0 +1,4 @@
+# exportPattern("^[^\\.]")
+export(DensDotPlot)
+export(GetTyphoonPlotMat)
+# importFrom(gplots, colorpanel)
