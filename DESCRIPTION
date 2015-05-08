@@ -19,4 +19,5 @@ Imports:
   GenomicRanges (>= 1.18.4),
   gplots (>= 2.16.0),
   Rsamtools (>= 1.18.3)
-URL: http://www.duke.edu/~jab112
+URL: http://www.github.com/jbelsky/TyphoonPlot
+BugReports: http://www.github.com/jbelsky/TyphoonPlot/issues
