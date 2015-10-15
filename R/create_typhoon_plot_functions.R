@@ -18,7 +18,7 @@ GetTyphoonPlotMat = function(bam_file_name, chr, start_pos, end_pos){
 	chr.gr = ConvertPairedReadBAMToGR(bam_file_name, chr, start_pos, end_pos)
 
 	# Subset on reads less than 250 bp
-	chr.gr = chr.gr[width(chr.gr) <= 250]
+	chr.gr = chr.gr[BiocGenerics::width(chr.gr) <= 250]
 
 	# Set the query GR
 	query.gr = GenomicRanges::GRanges(seqnames = chr,
@@ -32,9 +32,9 @@ GetTyphoonPlotMat = function(bam_file_name, chr, start_pos, end_pos){
 	# Get a new typhoon_plot_gr that will contain the positions of the "half width" reads
 	chr_tp.gr = chr.gr
 
-	# Update the start and end coordinates of the "half width" reads
-	IRanges::ranges(chr_tp.gr) = IRanges::IRanges(start = start(chr.gr) + round(width(chr.gr) / 4),
-				                                        end = end(chr.gr) - round(width(chr.gr) / 4)
+  # Update the start and end coordinates of the "half width" reads
+	IRanges::ranges(chr_tp.gr) = IRanges::IRanges(start = BiocGenerics::start(chr.gr) + round(BiocGenerics::width(chr.gr) / 4),
+				                                        end = BiocGenerics::end(chr.gr) - round(BiocGenerics::width(chr.gr) / 4)
 				                                       )
 
 	# Set up the matrix

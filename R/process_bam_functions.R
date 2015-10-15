@@ -19,9 +19,9 @@ ConvertPairedReadBAMToGR = function(bam_file_name, chr, start_pos = 1, end_pos =
 
 	# Make a GR file for the chromosome
 	chr.gr = GenomicRanges::GRanges(seqnames = chr,
-			 ranges = IRanges(start = max(start_pos - 250, 1), end = end_pos),
-			 strand = "*"
-			)
+			                            ranges = IRanges::IRanges(start = max(start_pos - 250, 1), end = end_pos),
+			                            strand = "*"
+			                           )
 
 	# Specify the scan bam paramaeters
 	p = Rsamtools::ScanBamParam(what = c("pos", "isize"),
@@ -37,8 +37,8 @@ ConvertPairedReadBAMToGR = function(bam_file_name, chr, start_pos = 1, end_pos =
 		# Convert these reads to a GR object
 		IP.gr = GenomicRanges::GRanges(seqnames = factor(chr, levels = names(chr_length.v)),
 				                           ranges = IRanges::IRanges(start = reads.l[[1]][["pos"]],
-                                                            width = reads.l[[1]][["isize"]]
-                                                   ),
+                                                             width = reads.l[[1]][["isize"]]
+                                                            ),
 				                           strand = "*"
 			                            )
 		GenomeInfoDb::seqlengths(IP.gr) = chr_length.v
