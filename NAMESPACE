@@ -1,4 +1,6 @@
 # exportPattern("^[^\\.]")
 export(DensDotPlot)
+export(MergeCoveragePlot)
 export(GetTyphoonPlotMat)
+export(MakeGeneSchematic)
 # importFrom(gplots, colorpanel)
