@@ -145,9 +145,8 @@ DensDotPlot = function(dot.m, z_min = 0, z_max = NA,
 MakeGeneSchematic = function(feature_chr, feature_start, feature_end,
 			       y_low = 0, y_high = 1, cex_title = 1, bg_type = "white",
              fwd_gene_col = "gray", rev_gene_col = "gray",
-			       proteinCoding = T, geneName = T, omit_genes = NA, x_pos_title = 50,
-			       gene_file_name = "/data/illumina_pipeline/scripts/feature_files/yeast/gene_tables/sacCer2_ucsc_sgdGeneTable.csv"
-			      ){
+			       proteinCoding = T, geneName = T, omit_genes = NA, x_pos_title = 50
+			       ){
 
 	# Set up the plot
 	plot(0, 0, type = "n", bty = "n", bg = bg_type,
@@ -156,50 +155,45 @@ MakeGeneSchematic = function(feature_chr, feature_start, feature_end,
 	     ann = F
 	    )
 
-	# Load the gene dataframe
-	gene.df = read.csv(gene_file_name)
-
 	# Subset only on protein coding if selected
 	if(proteinCoding){
 
-		idx = which(as.character(gene.df$name) != as.character(gene.df$sgd_name))
+		idx = which(as.character(yeast_gene.df$name) != as.character(yeast_gene.df$sgd_name))
 
-		gene.df = gene.df[idx,]
+		yeast_gene.df = yeast_gene.df[idx,]
 
 	}
 
 	# Omit any gene if necessary
 	if(any(!is.na(omit_genes))){
 
-		gene.df = gene.df[-which(gene.df$sgd_name %in% omit_genes),]
+		yeast_gene.df = yeast_gene.df[-which(yeast_gene.df$sgd_name %in% omit_genes),]
 
 	}
 
 	# Convert to a GenomicRanges object
-	gene.gr = GenomicRanges::GRanges(seqnames = gene.df$chr,
-			  ranges = IRanges(start = gene.df$start, end = gene.df$end),
-			  strand = gene.df$strand
-			 )
-	names(gene.gr) = gene.df$name
+	gene.gr = GenomicRanges::GRanges(seqnames = yeast_gene.df$chr,
+			                             ranges = IRanges::IRanges(start = yeast_gene.df$start, end = yeast_gene.df$end),
+			                             strand = yeast_gene.df$strand
+			                            )
+	names(gene.gr) = yeast_gene.df$name
 
 	# Create the feature gr
 	feature.gr = GenomicRanges::GRanges(seqnames = feature_chr,
-			     ranges = IRanges(start = feature_start, end = feature_end)
-			    )
+			                                ranges = IRanges::IRanges(start = feature_start, end = feature_end)
+			                               )
 
-  # return(list(a = feature.gr, b = gene.gr))
-
-	# Find the overlaps
+  # Find the overlaps
   overlaps.hits = GenomicRanges::findOverlaps(feature.gr, gene.gr)
 
-	if(any(subjectHits(overlaps.hits))){
+	if(any(S4Vectors::subjectHits(overlaps.hits))){
 
     # Get the subjectHits
-    subject_hits.v = subjectHits(overlaps.hits)
+    subject_hits.v = S4Vectors::subjectHits(overlaps.hits)
 
 		# Enter in the genes
 		for(i in 1:length(subject_hits.v)){
-			plot_gene(gene.df[subject_hits.v[i],], y_low, y_high,
+			PlotGene(yeast_gene.df[subject_hits.v[i],], y_low, y_high,
 				  feature_start, feature_end, cex_title, geneName, x_pos_title, fwd_gene_col, rev_gene_col)
 		}
 
@@ -208,9 +202,10 @@ MakeGeneSchematic = function(feature_chr, feature_start, feature_end,
 }
 
 # Plot gene
-plot_gene = function(gene.v, ylow, yhigh, xstart, xend, cex_title, geneName, x_pos_title = 50,
-                     fwd_gene_color, rev_gene_color
-                     ){
+PlotGene = function(gene.v, ylow, yhigh, xstart, xend,
+                    cex_title, geneName, x_pos_title = 50,
+                    fwd_gene_color, rev_gene_color
+                   ){
 
 	# Get y_mid
 	ymid = (yhigh + ylow) / 2
@@ -249,7 +244,7 @@ plot_gene = function(gene.v, ylow, yhigh, xstart, xend, cex_title, geneName, x_p
 }
 
 # Set up the schematic section
-set_chromatin_schematic = function(x_start = 0, x_end = 1, y_start = 0, y_end = 1){
+SetChromatinSchematic = function(x_start = 0, x_end = 1, y_start = 0, y_end = 1){
 
 	plot(0, 0, type = "n", bty = "n",
 	     xlim = c(x_start, x_end), xaxs = "i", xaxt = "n",
@@ -260,10 +255,10 @@ set_chromatin_schematic = function(x_start = 0, x_end = 1, y_start = 0, y_end = 
 }
 
 # Enter in the axes
-make_typhoon_plot_axes = function(x_start, x_end, x_step = 500, x_divide = 1000, x_format = "f", x_digits = 1,
-								  addXAxis = T, addXLabel = T, addXTick = T, x_axis_line = NA, x_axis_pos = NA,
-								  addYAxis = T, addYLabel = T
-								 ){
+MakeTyphoonPlotAxes = function(x_start, x_end, x_step = 500, x_divide = 1000, x_format = "f", x_digits = 1,
+								               addXAxis = T, addXLabel = T, addXTick = T, x_axis_line = NA, x_axis_pos = NA,
+								               addYAxis = T, addYLabel = T
+								              ){
 
 	# Get the axes to plot
 	x_axes = seq((x_start - (x_start %% x_step)), x_end + x_step, x_step)
@@ -305,6 +300,54 @@ make_typhoon_plot_axes = function(x_start, x_end, x_step = 500, x_divide = 1000,
 
 }
 
+
+
+
+MakeIndividualTyphoonPlot = function(plot_file_name, bam_file_name, chr, start_pos, end_pos){
+
+  # Set up the plot
+  png(file = plot_file_name, width = 10, height = 7, units = "in", res = 300)
+
+  # Close the screens
+  close.screen(all.screens = T)
+
+  # Set up the plot screening matrix
+  plot_scr.m = matrix(c(0, 1, 0.9, 1,
+                        0, 1, 0.8, 0.9,
+                        0, 1, 0, 0.8
+                       ), ncol = 4, byrow = T
+                     )
+
+  # Split the screen
+  plot_scr.s = split.screen(plot_scr.m)
+
+  # Make the GeneSchematic
+  screen(plot_scr.s[1])
+  par(mar = c(0, 4.5, 0, 2))
+  MakeGeneSchematic(chr, start_pos, end_pos)
+
+  # Make the Nucleosome Schematic
+  screen(plot_scr.s[2])
+  par(mar = c(0, 4.5, 0, 2))
+  PlotNucleosomeModel(bam_file_name, chr, start_pos, end_pos)
+
+  # Create the DensDotPlot
+  screen(plot_scr.s[3])
+  par(mar = c(4.5, 4.5, 0, 2))
+
+  # Make the TyphoonPlot
+  DensDotPlot(GetTyphoonPlotMat(bam_file_name, chr, start_pos, end_pos),
+              x_axt = "n", y_axt = "n",
+              y_lab = "Fragment length (bp)"
+             )
+  title(xlab = paste("Chr ", as.roman(chr), " position (kb)", sep = ""), family = "serif", line = 2.5)
+  MakeTyphoonPlotAxes(x_start = start_pos, x_end = end_pos)
+
+  # Close the device
+  close.screen(all.screens = T)
+  dev.off()
+
+}
 
 
 

@@ -50,4 +50,5 @@ ConvertPairedReadBAMToGR = function(bam_file_name, chr, start_pos = 1, end_pos =
 	}
 
 	return(IP.gr)
+
 }
