@@ -53,7 +53,11 @@ GetDensityPeaks = function(cov.v, x_mid, min_thresh = 1, peak_width = 75){
 
 		# Enter in the peak position and the signal
 		GenomicRanges::values(peaks.gr)$peak = IRanges::mid(IRanges::ranges(peaks.gr))
+<<<<<<< HEAD
 		GenomicRanges::values(peaks.gr)$sig = cov_fft.v[GenomicRanges::values(peaks.gr)$peak]
+=======
+		GenomicRanges::values(peaks.gr)$sig = cov_fft.v[values(peaks.gr)$peak]
+>>>>>>> c685af6a67330282fd5bc68c8f50edb7c90d2f2c
 
 		neg_idx = numeric()
 
@@ -72,7 +76,11 @@ GetDensityPeaks = function(cov.v, x_mid, min_thresh = 1, peak_width = 75){
 
 			peak_range_sig = max(cov_fft.v[start:end])
 
+<<<<<<< HEAD
 			if(peak_range_sig > GenomicRanges::values(peaks.gr)$sig[i]){
+=======
+			if(peak_range_sig > values(peaks.gr)$sig[i]){
+>>>>>>> c685af6a67330282fd5bc68c8f50edb7c90d2f2c
 
 				neg_idx = c(neg_idx, i)
 
@@ -91,8 +99,13 @@ GetDensityPeaks = function(cov.v, x_mid, min_thresh = 1, peak_width = 75){
 		win = (length(cov_fft.v) - 1)/2
 
 		# Get the peaks
+<<<<<<< HEAD
 		peaks.df = data.frame(pos = GenomicRanges::values(peaks.gr)$peak - win,
 				                  sig = GenomicRanges::values(peaks.gr)$sig
+=======
+		peaks.df = data.frame(pos = values(peaks.gr)$peak - win,
+				                  sig = values(peaks.gr)$sig
+>>>>>>> c685af6a67330282fd5bc68c8f50edb7c90d2f2c
 				                 )
 
 		# Remove peaks within 40 bp of either end
