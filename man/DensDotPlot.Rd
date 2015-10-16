@@ -4,7 +4,7 @@
 \alias{DensDotPlot}
 \title{Makes a heatmap of data within a matrix}
 \usage{
-DensDotPlot(dot.m, z_min = 0, z_max = 100, low_col = "white",
+DensDotPlot(dot.m, z_min = 0, z_max = NA, low_col = "white",
   med_col = "", high_col = "blue", num_colors = 100, plot_title = "",
   plot_title_line = NA, x_label = "", y_label = "", x_axt = "s",
   y_axt = "s", plot_box = TRUE)

@@ -20,6 +20,7 @@ Imports:
   GenomicRanges (>= 1.18.4),
   gplots (>= 2.16.0),
   IRanges (>= 2.0.1),
+  nucleR (>= 1.14.0),
   Rsamtools (>= 1.18.3),
   S4Vectors (>= 0.4.0)
 URL: http://www.github.com/jbelsky/TyphoonPlot
