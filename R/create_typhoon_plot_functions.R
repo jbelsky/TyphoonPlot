@@ -2,14 +2,21 @@
 old_options <- options(stringsAsFactors = FALSE)
 on.exit(options(old_options), add = TRUE)
 
-#' Get the TyphoonPlot matrix
+#' Obtain the TyphoonPlot matrix needed for plotting.
 #'
-#' @param bam_file_name character, a bam file and its associated .bai index file
-#' @param chr character, chromosome from the bam file
-#' @param start_pos numeric, genomic start position
-#' @param end_pos numeric, genomic end position
+#' Given an indexed bam file and chromosomal genomic coordinates, this function
+#' will return a matrix displaying the paired-end, sequenced reads in
+#' two dimensions.  Note that this function will plot reads at half their
+#' span to reduce the overlap between adjacent reads.  For example, a 100 bp
+#' paired-end read spanning from position 201 to 300 will fill a 50 bp
+#' x-coordinate region from position 226 to 275.
+#'
+#' @param bam_file_name Character, a bam file and its associated .bai index file
+#' @param chr Character, chromosome from the bam file
+#' @param start_pos Numeric, genomic start position
+#' @param end_pos Numeric, genomic end position
 #' @return A frag_length x position matrix (250 rows x position columns) that
-#'  can be visualized with DensDotPlot
+#'    can be visualized with DensDotPlot
 #' @examples
 #' \dontrun{GetTyphoonPlotMat("/home/jab112/dm242.bam", "1", 10000, 15000)}
 GetTyphoonPlotMat = function(bam_file_name, chr, start_pos, end_pos){
@@ -68,17 +75,22 @@ GetTyphoonPlotMat = function(bam_file_name, chr, start_pos, end_pos){
 
 #' Makes a heatmap of data within a matrix
 #'
-#' @param dot.m matrix, the 2-dimensional matrix to plot
-#' @param z_min numeric, the minimum intensity of the plot (default: 0)
-#' @param z_max numeric, the maximum intensity of the plot (default: 50)
-#' @param low_col character, the minimum color (default: "white")
-#' @param med_col character, the middle color (optional, default: "")
-#' @param high_col character, the maximum color (default: "blue")
-#' @param num_colors numeric, the number of colors between low_col and high_col
-#' @param plot_title,x_label,y_label character (optional, default: "" for all)
-#' @param x_axt,y_axt character, "s" (default) or "n"
-#' @param plot_title_line numeric, (optional, default: NA)
-#' @param plot_box boolean, (default: TRUE)
+#' This function takes as input a TyphoonPlot matrix created from
+#' \code{\link{GetTyphoonPlotMat}} and uses the \code{\link[graphics]{image}}
+#' function to create the heatmap.
+#'
+#' @param dot.m Matrix, the 2-dimensional matrix to plot
+#' @param z_min Numeric, the minimum intensity of the plot (default: 0)
+#' @param z_max Numeric, the maximum intensity of the plot.  If not specified,
+#'  by default the maximum will be set to the value at the 95th percentile (default: NA)
+#' @param low_col Character, the minimum color (default: "white")
+#' @param med_col Character, the middle color (optional, default: "")
+#' @param high_col Character, the maximum color (default: "blue")
+#' @param num_colors Numeric, the number of colors between low_col and high_col
+#' @param plot_title,x_label,y_label Character (optional, default: "" for all)
+#' @param x_axt,y_axt Character, "s" (default) or "n"
+#' @param plot_title_line Numeric, (optional, default: NA)
+#' @param plot_box Boolean, (default: TRUE)
 #' @return A heatmap plot utilizing the image function
 #' @examples
 #' \dontrun{DensDotPlot(dot.m = typhoon.m, z_max = 50)}
@@ -141,11 +153,36 @@ DensDotPlot = function(dot.m, z_min = 0, z_max = NA,
 
 }
 
-# Set up the gene
+#' Creates a schematic displaying gene locations in a given chromosomal region.
+#'
+#' Each gene is designated as a gray box, with genes on the Watson (+) strand
+#' displayed in the top row and genes on the Crick (-) strand displayed on
+#' the bottom row.  Orientation of the gene name also denotes transcription
+#' direction.  Currently this function will only make a gene schematic for
+#' yeast genes in the sacCer2/SGD R61 genome version.
+#'
+#' @param feature_chr Character, chromosome (e.g. "1")
+#' @param feature_start Numeric, genomic start position
+#' @param feature_end Numeric, genomic end position
+#' @param cex_title Numeric, specifies the cex expansion factor for the title
+#' @param bg_type Character, whether to make the background "white" or "transparent"
+#'  (Default: "white").
+#' @param fwd_gene_col,rev_gene_col Character, specifies the color for both
+#'  the Watson (+) and Crick (-) genes (Default: "gray" for both).
+#' @param proteinCoding Boolean, should only protein-coding genes be included as
+#'  opposed to including all open-reading-frames (Default: T)
+#' @param geneName Boolean, should the gene name be displayed (Default: T)
+#' @param omit_genes Character vector, should any gene names be excluded from the
+#'  plot.  This is useful if there are overlapping genes. (Default: NA)
+#'
+#' @return A schematic showing gene locations in a given chromosomal location
+#'
+#' @examples
+#'  MakeGeneSchematic("1", 40000, 41000)
 MakeGeneSchematic = function(feature_chr, feature_start, feature_end,
-			       y_low = 0, y_high = 1, cex_title = 1, bg_type = "white",
+			       cex_title = 1, bg_type = "white",
              fwd_gene_col = "gray", rev_gene_col = "gray",
-			       proteinCoding = T, geneName = T, omit_genes = NA, x_pos_title = 50
+			       proteinCoding = T, geneName = T, omit_genes = NA
 			       ){
 
 	# Set up the plot
@@ -193,49 +230,73 @@ MakeGeneSchematic = function(feature_chr, feature_start, feature_end,
 
 		# Enter in the genes
 		for(i in 1:length(subject_hits.v)){
-			PlotGene(yeast_gene.df[subject_hits.v[i],], y_low, y_high,
-				  feature_start, feature_end, cex_title, geneName, x_pos_title, fwd_gene_col, rev_gene_col)
+			PlotGene(yeast_gene.df[subject_hits.v[i],], y_low = 0, y_high = 1,
+				  feature_start, feature_end, cex_title, geneName, x_pos_title = 50, fwd_gene_col, rev_gene_col)
 		}
 
 	}
 
 }
 
-# Plot gene
-PlotGene = function(gene.v, ylow, yhigh, xstart, xend,
+#' Helper function to plot individual genes as rectangles.
+#'
+#' Helper function for \code{\link{MakeGeneSchematic}} to plot individual
+#' genes.  Each gene is designated as a gray box, with genes on the Watson (+)
+#' strand displayed in the top row and genes on the Crick (-) strand displayed
+#' on the bottom row.  Orientation of the gene name also denotes transcription
+#' direction.
+#'
+#' @param gene.v Vector, selected row from \code{yeast_gene.df} feature file
+#'  containing information about the gene.
+#' @param y_low Numeric, the bottom \emph{y} rectangular coordinate.
+#' @param y_high Numeric, the top \emph{y} rectangular coordinate.
+#' @param x_start Numeric, the left \emph{x} rectangular coordinate of the plot.
+#' @param x_end Numeric, the right \emph{x} rectangular coordinate of the plot.
+#' @param x_pos_title Numeric, the number of inset bp specifying the gene name.
+#' @inheritParams MakeGeneSchematic
+#'
+#' @return Rectangle schematic depicting gene coordinates
+#'
+#' @examples
+#'  PlotGene(gene.v = yeast_gene.df[1,], y_low = 0.5, y_high = 1,
+#'           x_start = 40000, x_end = 41000, cex_title = 1,
+#'           geneName = T, x_pos_title = 50,
+#'           fwd_gene_color = "gray", rev_gene_color = "gray"
+#'          )
+PlotGene = function(gene.v, y_low, y_high, x_start, x_end,
                     cex_title, geneName, x_pos_title = 50,
                     fwd_gene_color, rev_gene_color
                    ){
 
 	# Get y_mid
-	ymid = (yhigh + ylow) / 2
+	y_mid = (y_high + y_low) / 2
 
 	# Add in the text
 	if(gene.v$strand == "+"){
 
 		# Make the rectangle
-		rect(gene.v$start, ymid + 0.1, gene.v$end, yhigh - 0.1, col = fwd_gene_color)
+		rect(gene.v$start, y_mid + 0.1, gene.v$end, y_high - 0.1, col = fwd_gene_color)
 
 		if(geneName){
-			if(gene.v$start >= xstart){
-				text(x = gene.v$start + x_pos_title, y = yhigh - 0.15, adj = c(0, 1),
+			if(gene.v$start >= x_start){
+				text(x = gene.v$start + x_pos_title, y = y_high - 0.15, adj = c(0, 1),
 				     labels = gene.v$sgd_name, font = 3, cex = cex_title)
 			}else{
-				text(x = gene.v$end - x_pos_title, y = yhigh - 0.15, adj = c(1, 1),
+				text(x = gene.v$end - x_pos_title, y = y_high - 0.15, adj = c(1, 1),
 				     labels = gene.v$sgd_name, font = 3, cex = cex_title)
 			}
 		}
 	}else{
 
 		# Make the rectangle
-		rect(gene.v$start, ylow + 0.1, gene.v$end, ymid - 0.1, col = rev_gene_color)
+		rect(gene.v$start, y_low + 0.1, gene.v$end, y_mid - 0.1, col = rev_gene_color)
 
 		if(geneName){
 			if(gene.v$end <= xend){
-				text(x = gene.v$end - x_pos_title, y = ylow + 0.15, adj = c(0, 1),
+				text(x = gene.v$end - x_pos_title, y = y_low + 0.15, adj = c(0, 1),
 				     labels = gene.v$sgd_name, srt = 180, font = 3, cex = cex_title)
 			}else{
-				text(x = gene.v$start + x_pos_title, y = ylow + 0.15, adj = c(1, 1),
+				text(x = gene.v$start + x_pos_title, y = y_low + 0.15, adj = c(1, 1),
 				     labels = gene.v$sgd_name, srt = 180, font = 3, cex = cex_title)
 			}
 		}

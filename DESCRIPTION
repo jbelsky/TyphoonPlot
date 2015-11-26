@@ -1,7 +1,7 @@
 Package: TyphoonPlot
 Title: Creating Genomic Typhoon Plots
-Version: 0.0.0.9000
-Date: 2015-05-03
+Version: 1.0.0
+Date: 2015-11-26
 Authors@R: person(given = "Jason", middle = "A", family = "Belsky",
                   email = "jabelsky@gmail.com",
                   role = c("aut", "cre")
@@ -12,16 +12,18 @@ Description: Provides both processing and graphics helper functions to create a
     position, and the y-axis the fragment length.  Typhoon Plots are created
     first by creating a data matrix, and are then subsequently displayed
     using the DensDotPlot function, a wrapper for the base image() function
-Depends: R (>= 3.1.3)
+Depends:
+    R (>= 3.2.0)
 License: What license is it under?
 LazyData: true
 Imports:
-  GenomeInfoDb (>= 1.2.4),
-  GenomicRanges (>= 1.18.4),
-  gplots (>= 2.16.0),
-  IRanges (>= 2.0.1),
-  nucleR (>= 1.14.0),
-  Rsamtools (>= 1.18.3),
-  S4Vectors (>= 0.4.0)
+    GenomeInfoDb (>= 1.2.4),
+    GenomicRanges (>= 1.18.4),
+    gplots (>= 2.16.0),
+    IRanges (>= 2.0.1),
+    Rsamtools (>= 1.18.3),
+    S4Vectors (>= 0.4.0),
+    splus2R (>= 1.2.0)
 URL: http://www.github.com/jbelsky/TyphoonPlot
 BugReports: http://www.github.com/jbelsky/TyphoonPlot/issues
+RoxygenNote: 5.0.1

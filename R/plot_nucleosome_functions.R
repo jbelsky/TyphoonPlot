@@ -14,13 +14,13 @@ GetMNaseFeatureDensity = function(bam_file_name, chr, start, end, fragL, fragH, 
 
   # Create the density (Note: not a true density since it doesn't sum to 1)
   read_pos.dens = suppressWarnings(
-                    stats::density(read_pos.v, bw = bw, weights = rep(1, length(read_pos.v)),
+                    stats::density(read_pos.v, bw = bw, # weights = rep(1, length(read_pos.v)),
                                    from = start, to = end, n = end - start + 1
                                   )
                   )
 
   # Convert to a numeric vector
-  read_pos.v = read_pos.dens$y
+  read_pos.v = read_pos.dens$y * length(read_pos.v) / (end - start + 1)
   names(read_pos.v) = read_pos.dens$x
 
   # Scale to the number of reads
@@ -33,79 +33,18 @@ GetMNaseFeatureDensity = function(bam_file_name, chr, start, end, fragL, fragH, 
 
 
 
-GetDensityPeaks = function(cov.v, x_mid, min_thresh = 1, peak_width = 75){
+GetDensityPeaks = function(cov.v, peak_width = 75, isPeakMax = TRUE){
 
 	# Set the peak window
 	peak_win = (peak_width - 1) / 2
 
-	# Perform an FFT on the coverage
-	cov_fft.v = nucleR::filterFFT(cov.v, pcKeepComp = 0.02)
-
 	# Find the peaks
-	cov_peaks.v = nucleR::peakDetection(cov_fft.v, threshold = min_thresh, score = F, width = 1)
-
-	if(!is.null(cov_peaks.v)){
-
-		# Convert to GenomicRanges
-		peaks.gr = GenomicRanges::GRanges(seqnames = 1,
-				                              ranges = IRanges::IRanges(start = cov_peaks.v - 1, width = 1)
-				                             )
-
-		# Enter in the peak position and the signal
-		GenomicRanges::values(peaks.gr)$peak = IRanges::mid(IRanges::ranges(peaks.gr))
-		GenomicRanges::values(peaks.gr)$sig = cov_fft.v[GenomicRanges::values(peaks.gr)$peak]
-
-		neg_idx = numeric()
-
-		# Ensure that the peak is the highest signal in the range
-		for(i in 1:length(peaks.gr)){
-
-			# Get the maximum signal in the peak_width range
-			start = GenomicRanges::values(peaks.gr)$peak[i] - peak_win
-			end = GenomicRanges::values(peaks.gr)$peak[i] + peak_win
-
-			if(start < 1){
-				start = 1
-			}else if(end > length(cov_fft.v)){
-				end = length(cov_fft.v)
-			}
-
-			peak_range_sig = max(cov_fft.v[start:end])
-
-			if(peak_range_sig > GenomicRanges::values(peaks.gr)$sig[i]){
-
-        neg_idx = c(neg_idx, i)
-
-			}
-
-		}
-
-		if(length(neg_idx) > 0){
-
-			# Get the peak listing
-			peaks.gr = peaks.gr[-neg_idx]
-
-		}
-
-		# Get the win
-		win = (length(cov_fft.v) - 1)/2
-
-		# Get the peaks
-		peaks.df = data.frame(pos = GenomicRanges::values(peaks.gr)$peak - win,
-				                  sig = GenomicRanges::values(peaks.gr)$sig
-				                 )
-
-		# Remove peaks within 40 bp of either end
-		peaks.df = peaks.df[which(peaks.df$pos >= (-win + 40) & peaks.df$pos <= (win - 40)),]
-
-	}else{
-
-		peaks.df = data.frame(pos = numeric(), sig = numeric())
-
-	}
+	cov_peaks.v = as.numeric(names(cov.v)[splus2R::peaks(x = cov.v, span = peak_width, strict = isPeakMax)])
 
 	# Adjust the position
-	peaks.df$pos = x_mid + peaks.df$pos
+	peaks.df = data.frame(pos = cov_peaks.v,
+	                      sig = cov.v[as.character(cov_peaks.v)]
+	                     )
 
 	return(peaks.df)
 

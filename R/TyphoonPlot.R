@@ -6,16 +6,31 @@
 #'
 #' @section Required Packages:
 #' This package requires the following packages:
-#'  gplots
-#'  GenomicRanges
-#'  Rsamtools
+#' GenomeInfoDb (>= 1.2.4),
+#' GenomicRanges (>= 1.18.4),
+#' gplots (>= 2.16.0),
+#' IRanges (>= 2.0.1),
+#' Rsamtools (>= 1.18.3),
+#' S4Vectors (>= 0.4.0),
+#' splus2R (>= 1.2.0)
 #'
 #' @section TyphoonPlot Processing Functions:
 #'  GetTyphoonPlotMat
-#'  GetTyphoonPlotMatJava
 #'
 #' @section TyphoonPlot Graphing Functions:
 #'  DensDotPlot
+#'  MakeGeneSchematic
+#'  MakeIndividualTyphoonPlot
+#'  MakeTyphoonPlotAxes
+#'  MergeCoveragePlot
+#'  SetChromatinSchematic
+#'  PlotNucleosome
+#'  PlotNucleosomeModel
+#'
+#' @section TyphoonPlot Density Smoothing Functions:
+#'  ConvertPairedReadBAMToGR
+#'  GetDensityPeaks
+#'  GetMNaseFeatureDensity
 #'
 #' @docType package
 #' @name TyphoonPlot
