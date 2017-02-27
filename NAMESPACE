@@ -2,6 +2,8 @@
 export(DensDotPlot)
 export(MergeCoveragePlot)
 export(GetTyphoonPlotMat)
+export(GetVPlotMat)
+export(GetAggregateVPlot)
 export(MakeGeneSchematic)
 export(SetChromatinSchematic)
 export(MakeTyphoonPlotAxes)

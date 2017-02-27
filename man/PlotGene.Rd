@@ -42,4 +42,3 @@ direction.
           fwd_gene_color = "gray", rev_gene_color = "gray"
          )
 }
-

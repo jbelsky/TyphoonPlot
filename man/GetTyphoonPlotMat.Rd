@@ -30,4 +30,3 @@ x-coordinate region from position 226 to 275.
 \examples{
 \dontrun{GetTyphoonPlotMat("/home/jab112/dm242.bam", "1", 10000, 15000)}
 }
-

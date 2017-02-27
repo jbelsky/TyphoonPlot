@@ -73,6 +73,114 @@ GetTyphoonPlotMat = function(bam_file_name, chr, start_pos, end_pos){
 
 }
 
+
+GetVPlotMat = function(bam_file_name, chr, pos, win){
+
+	# Set the start and end pos
+	start_pos = pos - win
+	end_pos = pos + win
+
+	# Load the bam_file
+	chr.gr = ConvertPairedReadBAMToGR(bam_file_name, chr, start_pos, end_pos)
+
+	# Subset on reads less than 250 bp
+	chr.gr = chr.gr[BiocGenerics::width(chr.gr) <= 250]
+
+	# Set the query GR
+	query.gr = GenomicRanges::GRanges(seqnames = chr,
+			                  ranges = IRanges::IRanges(start = start_pos, end = end_pos)
+			                 )
+
+	# Subset on the indices that overlap with the query.gr
+	idx = S4Vectors::subjectHits(IRanges::findOverlaps(query.gr, chr.gr))
+	chr.gr = chr.gr[idx]
+
+	# Get a new typhoon_plot_gr that will contain the positions of the "half width" reads
+	chr_tp.gr = chr.gr
+
+	# Update the start and end coordinates of the "half width" reads
+	IRanges::ranges(chr_tp.gr) = IRanges::IRanges(start = BiocGenerics::start(chr.gr) + round(BiocGenerics::width(chr.gr) / 2),
+				                      width = 1
+				                     )
+
+	# Set up the matrix
+	mat.m = matrix(0, nrow = 250, ncol = end_pos - start_pos + 1)
+	colnames(mat.m) = start_pos:end_pos
+
+	# Create the sub feature
+	mat.gr = GenomicRanges::GRanges(seqnames = chr,
+					ranges = IRanges::IRanges(start = start_pos:end_pos, width = 1)
+				       )
+
+	# Iterate through each fragment width
+	for(i in 20:250){
+
+		# Get the reads that have a particular fragment width
+		idx = which(BiocGenerics::width(chr.gr) == i)
+
+		if(any(idx)){
+
+			# Count the overlaps with the mat.gr
+			mat.m[i,] = IRanges::countOverlaps(mat.gr, chr_tp.gr[idx])
+
+		}
+
+	}
+
+	# Return the mat.m
+	return(mat.m)
+
+}
+
+#' Obtain the aggregate VPlot matrix over a set of chromosomal coordinates (e.g. TF-binding sites)
+#'
+#' Given a data frame listing chromosomal coordinates, an indexed bam file, 
+#' and a bp window, this function will return a matrix displaying the paired-end, 
+#' sequenced reads in a standard V-plot (e.g. at the midpoint-fragment length
+#' location in a matrix.
+#'
+#' @param data.df Data Frame, a feature data frame containing the "chr", "mid", and "strand" components for each location in the dataset
+#' @param bam_file_name Character, a bam file and its associated .bai index file
+#' @param win Numeric, number of bp to extend the V-plot from the midpoint location
+#' @return A frag_length x position matrix (250 rows x (2*win + 1) columns) that
+#'    can be visualized with DensDotPlot
+#' @examples
+#' \dontrun{GetAggregateVPlot(abf1_yeast_sacCer2.df, "/home/jab112/dm242.bam", 500)}
+GetAggregateVPlot = function(data.df, bam_file_name, win){
+
+    # Initialize the aggregate V-plot matrix
+    mat.m = matrix(0, nrow = 250, ncol = (2*win) + 1)
+    colnames(mat.m) = -win:win
+
+    # Iterate through each feature
+    for(i in 1:nrow(data.df)){
+
+	# Get the chromosome coordinates and strand
+	chr = as.character(data.df$chr[i])
+	pos = data.df$mid[i]
+	strand = as.character(data.df$strand[i])
+
+	# Get the V-Plot matrix for the position
+	cur_mat.m = GetVPlotMat(bam_file_name, chr, pos, win)
+
+	# Flip the matrix if on negative strand
+	if(strand == "-"){
+	    cur_mat.m = cur_mat.m[,ncol(cur_mat.m):1]
+	}
+
+	# Append to mat.m
+	mat.m = mat.m + cur_mat.m
+
+    }
+
+    # Return the mat.m
+    return(mat.m)
+
+
+}
+
+
+
 #' Makes a heatmap of data within a matrix
 #'
 #' This function takes as input a TyphoonPlot matrix created from

@@ -44,4 +44,3 @@ yeast genes in the sacCer2/SGD R61 genome version.
 \examples{
  MakeGeneSchematic("1", 40000, 41000)
 }
-

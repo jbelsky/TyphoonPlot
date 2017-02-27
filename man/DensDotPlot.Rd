@@ -44,4 +44,3 @@ function to create the heatmap.
 \examples{
 \dontrun{DensDotPlot(dot.m = typhoon.m, z_max = 50)}
 }
-
