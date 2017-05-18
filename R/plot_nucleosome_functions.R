@@ -19,9 +19,28 @@ GetMNaseFeatureDensity = function(bam_file_name, chr, start, end, fragL, fragH, 
                                   )
                   )
 
-  # Convert to a numeric vector
-  read_pos.v = read_pos.dens$y * length(read_pos.v) / (end - start + 1)
-  names(read_pos.v) = read_pos.dens$x
+	# Scale the density sum to 100
+	sig_density.v = read_pos.dens$y * 1000 / sum(read_pos.dens$y)	
+
+	# Get the BamStats
+	bamStats.df = GetBamStats(bam_file_name)
+	
+	# Parse the BamStats df
+	total_read_number = bamStats.df[which(bamStats.df$feature == "read_depth"), "value"]
+	genome_size = bamStats.df[which(bamStats.df$feature == "genome_size"), "value"]
+	
+	# Get the predicted read distribution
+	predict_read_dist = total_read_number * (end - start + 1) / genome_size
+
+	# Get the actual read distribution
+	#	NOTE: Using total MNase reads along genome instead of subset of fragL -> fragH
+	#		  This is done simply because getting total number of reads is a fast calculation from the bam index stats
+	#		  Can update in future to include additional file of fragment length distribution, which could then read to get the actual distribution
+	actual_read_dist = length(mnase_reads.gr)
+
+	# Scale the density by the proportion of actual_read_dist to predict_read_dist
+	read_pos.v = sig_density.v * actual_read_dist / predict_read_dist
+	names(read_pos.v) = read_pos.dens$x
 
   # Scale to the number of reads
   return(read_pos.v)
@@ -31,9 +50,7 @@ GetMNaseFeatureDensity = function(bam_file_name, chr, start, end, fragL, fragH, 
 
 
 
-
-
-GetDensityPeaks = function(cov.v, peak_width = 75, isPeakMax = TRUE){
+GetDensityPeaks = function(cov.v, peak_width = 75, isPeakMax = TRUE, min_peak_sig_thresh = 0){
 
 	# Set the peak window
 	peak_win = (peak_width - 1) / 2
@@ -45,6 +62,9 @@ GetDensityPeaks = function(cov.v, peak_width = 75, isPeakMax = TRUE){
 	peaks.df = data.frame(pos = cov_peaks.v,
 	                      sig = cov.v[as.character(cov_peaks.v)]
 	                     )
+
+	# Remove peaks below min_peak_sig_thresh
+	peaks.df = peaks.df[which(peaks.df$sig > min_peak_sig_thresh),]
 
 	return(peaks.df)
 
@@ -85,17 +105,14 @@ PlotNucleosome = function(nuc.df, y_max = 2, y0 = 0.5, yh = 0.2, nuc_col = "#FF0
 
 PlotNucleosomeModel = function(bam_file_name, chr, start_coord, end_coord,
                                low_frag = 150, high_frag = 175,
-                               min_peak_thresh = 0.2
+                               min_peak_thresh = 0.5
                                ){
 
   # Get the nucleosome density in the region
   nuc_dens.v = GetMNaseFeatureDensity(bam_file_name, chr, start_coord, end_coord, low_frag, high_frag, bw = 20)
 
   # Find the signal peaks
-  nuc_peaks.df = GetDensityPeaks(nuc_dens.v,
-                                 x_mid = (start_coord + end_coord) / 2,
-                                 min_thresh = min_peak_thresh
-                                )
+  nuc_peaks.df = GetDensityPeaks(nuc_dens.v, min_peak_sig_thresh = min_peak_thresh)
 
   # Set up the chromatin schematic
   SetChromatinSchematic(x_start = start_coord, x_end = end_coord, y_start = 0, y_end = 1)

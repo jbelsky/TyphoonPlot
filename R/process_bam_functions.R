@@ -52,3 +52,33 @@ ConvertPairedReadBAMToGR = function(bam_file_name, chr, start_pos = 1, end_pos =
 	return(IP.gr)
 
 }
+
+GetBamStats = function(bam_file_name){
+
+    # Get the summary of the .bai file
+    bai_file.v = system(command = paste("samtools idxstats ", bam_file_name, sep = ""), intern = T)
+
+    # Convert to list
+    bai_file.l = strsplit(bai_file.v, split = "\t")
+
+    # Convert to a dataframe
+    bai_file.df = as.data.frame(matrix(unlist(bai_file.l), ncol = 4, byrow = T))
+    colnames(bai_file.df) = c("chr", "length", "read_num", "unaligned")
+
+    # Convert the read number and length into a numeric
+    bai_file.df$read_num = as.numeric(as.character(bai_file.df$read_num))
+    bai_file.df$length = as.numeric(as.character(bai_file.df$length))
+
+	# Get the total genome size and total read depth
+	genome_size = sum(bai_file.df$length)
+	read_depth = sum(bai_file.df$read_num)
+
+	# Create an output dataframe
+	stats.df = data.frame("feature" = c("genome_size", "read_depth"), 
+						  "value" = c(genome_size, read_depth)
+						 ) 
+
+    # Return the stats.df
+	return(stats.df)
+
+}
